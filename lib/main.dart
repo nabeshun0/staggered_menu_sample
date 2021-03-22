@@ -46,7 +46,7 @@ class _ExampleStaggeredAnimationsPageState
     _staggeredController = AnimationController(
       vsync: this,
       duration: _animationDuration,
-    );
+    )..forward();
   }
 
   void _createAnimationIntervals() {
@@ -107,14 +107,31 @@ class _ExampleStaggeredAnimationsPageState
     final listItems = <Widget>[];
     for (var i = 0; i < _menuTitles.length; ++i) {
       listItems.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
-          child: Text(
-            _menuTitles[i],
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w500,
+        AnimatedBuilder(
+          animation: _staggeredController,
+          builder: (context, child) {
+            final animationPercent = Curves.easeOut.transform(
+              _itemSlideIntervals[i].transform(_staggeredController.value),
+            );
+            final opacity = animationPercent;
+            final slideDistance = (1.0 - animationPercent) * 150;
+            return Opacity(
+              opacity: opacity,
+              child: Transform.translate(
+                offset: Offset(slideDistance, 0),
+                child: child,
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
+            child: Text(
+              _menuTitles[i],
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ),
@@ -128,16 +145,34 @@ class _ExampleStaggeredAnimationsPageState
       width: double.infinity,
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: RaisedButton(
-          shape: const StadiumBorder(),
-          color: Colors.blue,
-          padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
-          onPressed: () {},
-          child: const Text(
-            'Get Started',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
+        child: AnimatedBuilder(
+          animation: _staggeredController,
+          builder: (context, child) {
+            final animationPercent = Curves.elasticOut.transform(
+              _buttonInterval.transform(_staggeredController.value),
+            );
+            final opacity = animationPercent.clamp(0.0, 1.0);
+            final scale = (animationPercent * 0.5) + 0.5;
+
+            return Opacity(
+              opacity: opacity,
+              child: Transform.scale(
+                scale: scale,
+                child: child,
+              ),
+            );
+          },
+          child: RaisedButton(
+            shape: const StadiumBorder(),
+            color: Colors.blue,
+            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
+            onPressed: () {},
+            child: const Text(
+              'Get Started',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+              ),
             ),
           ),
         ),
