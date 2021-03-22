@@ -6,6 +6,7 @@ void main() {
   ));
 }
 
+/// Page
 class ExampleStaggeredAnimationsPage extends StatefulWidget {
   @override
   _ExampleStaggeredAnimationsPageState createState() =>
@@ -15,6 +16,113 @@ class ExampleStaggeredAnimationsPage extends StatefulWidget {
 class _ExampleStaggeredAnimationsPageState
     extends State<ExampleStaggeredAnimationsPage>
     with SingleTickerProviderStateMixin {
+  late AnimationController _drawerSlideController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _drawerSlideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+  }
+
+  @override
+  void dispose() {
+    _drawerSlideController.dispose();
+    super.dispose();
+  }
+
+  bool _isDrawerOpen() {
+    return _drawerSlideController.value == 1.0;
+  }
+
+  bool _isDrawerOpening() {
+    return _drawerSlideController.status == AnimationStatus.forward;
+  }
+
+  bool _isDrawerClosed() {
+    return _drawerSlideController.value == 0.0;
+  }
+
+  void _toggleDrawer() {
+    if (_isDrawerOpen() || _isDrawerOpening()) {
+      _drawerSlideController.reverse();
+    } else {
+      _drawerSlideController.forward();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: _buildAppBar(),
+      body: Stack(
+        children: [
+          _buildContent(),
+          _buildDrawer(),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text(
+        'Flutter Menu',
+        style: TextStyle(color: Colors.black),
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0.0,
+      automaticallyImplyLeading: false,
+      actions: [
+        AnimatedBuilder(
+          animation: _drawerSlideController,
+          builder: (context, child) {
+            return IconButton(
+              onPressed: _toggleDrawer,
+              icon: _isDrawerOpen() || _isDrawerOpening()
+                  ? const Icon(
+                      Icons.clear,
+                      color: Colors.black,
+                    )
+                  : const Icon(
+                      Icons.menu,
+                      color: Colors.black,
+                    ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return const SizedBox();
+  }
+
+  Widget _buildDrawer() {
+    return AnimatedBuilder(
+      animation: _drawerSlideController,
+      builder: (context, child) {
+        return FractionalTranslation(
+          translation: Offset(1.0 - _drawerSlideController.value, 0.0),
+          child: _isDrawerClosed() ? const SizedBox() : Menu(),
+        );
+      },
+    );
+  }
+}
+
+/// Menu
+class Menu extends StatefulWidget {
+  @override
+  _MenuState createState() => _MenuState();
+}
+
+class _MenuState extends State<Menu> with SingleTickerProviderStateMixin {
   static const _menuTitles = [
     'Declarative Style',
     'Premade Widgets',
@@ -88,7 +196,16 @@ class _ExampleStaggeredAnimationsPageState
   }
 
   Widget _buildFlutterLogo() {
-    return Container();
+    return const Positioned(
+      right: -100,
+      bottom: -30,
+      child: Opacity(
+        opacity: 0.2,
+        child: FlutterLogo(
+          size: 400,
+        ),
+      ),
+    );
   }
 
   Widget _buildContent() {
@@ -162,10 +279,12 @@ class _ExampleStaggeredAnimationsPageState
               ),
             );
           },
-          child: RaisedButton(
-            shape: const StadiumBorder(),
-            color: Colors.blue,
-            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              shape: const StadiumBorder(),
+              primary: Colors.blue,
+              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 14),
+            ),
             onPressed: () {},
             child: const Text(
               'Get Started',
